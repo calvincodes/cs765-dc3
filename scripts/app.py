@@ -8,7 +8,6 @@ import plotly.graph_objs as go
 
 import pandas as pd
 from colour import Color
-from datetime import datetime
 from textwrap import dedent as d
 import json
 
@@ -25,14 +24,15 @@ CATEGORY = "Pet Supplies"
 
 ##############################################################################################################################################################
 def network_graph(yearRange, CategoryToSearch):
-    edge1 = pd.read_csv(os.path.dirname(__file__) + '/../dataset/pet_supplies_edges.csv')
-    node1 = pd.read_csv(os.path.dirname(__file__) + '/../dataset/pet_supplies.csv')
+    raw_edges = pd.read_csv(os.path.dirname(__file__) + '/../dataset/pet_supplies_edges.csv')
+    raw_nodes = pd.read_csv(os.path.dirname(__file__) + '/../dataset/pet_supplies.csv')
     # # Adding a dummy node. All source having no destination are linked to this node.
     # node1 = node1.append({'id': -1, 'name': 'Dummy', 'productCount': '0', 'subtreeProductCount': '0', 'parent': '-1',
     #                       'numChildren': '0', 'pathName': '[]', 'children': '[]', 'alsoCount': '0', 'also': '[]'},
     #                      ignore_index=True)
 
-    edge1 = edge1[edge1['src'] == 493]
+    edge1 = raw_edges[raw_edges['src'] == 29]
+    node1 = raw_nodes
 
     ### Commenting out this segment
     # # filter the record by datetime, to enable interactive control through the input box
@@ -45,6 +45,9 @@ def network_graph(yearRange, CategoryToSearch):
     #         continue
     #     categorySet.add(edge1['src'][index])
     #     categorySet.add(edge1['dest'][index])
+
+    for index, row in edge1.iterrows():
+        edge1 = edge1.append(raw_edges[raw_edges['src'] == edge1['dest'][index]])
 
     categorySet = set()  # contain unique account
     for index, row in edge1.iterrows():
@@ -151,9 +154,6 @@ def network_graph(yearRange, CategoryToSearch):
         x1, y1 = G.nodes[edge[1]]['pos']
         hovertext = "From: " + str(G.edges[edge]['src']) + "<br>" + "To: " + str(
             G.edges[edge]['dest'])
-        # hovertext = "From: " + str(G.edges[edge]['src']) + "<br>" + "To: " + str(
-        #     G.edges[edge]['dest']) + "<br>" + "TransactionAmt: " + str(
-        #     G.edges[edge]['TransactionAmt']) + "<br>" + "TransactionDate: " + str(G.edges[edge]['Date'])
         middle_hover_trace['x'] += tuple([(x0 + x1) / 2])
         middle_hover_trace['y'] += tuple([(y0 + y1) / 2])
         middle_hover_trace['hovertext'] += tuple([hovertext])
@@ -180,9 +180,9 @@ def network_graph(yearRange, CategoryToSearch):
                                     y=(G.nodes[edge[1]]['pos'][1] * 3 + G.nodes[edge[0]]['pos'][1]) / 4, xref='x',
                                     yref='y',
                                     showarrow=True,
-                                    arrowhead=3,
-                                    arrowsize=4,
-                                    arrowwidth=1,
+                                    arrowhead=2,
+                                    arrowsize=2,
+                                    arrowwidth=2,
                                     opacity=1
                                 ) for edge in G.edges]
                             )}
