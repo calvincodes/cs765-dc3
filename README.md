@@ -8,9 +8,13 @@
 
 ### Setup
 
+**ONE TIME** setup to create a venv and install required dependencies. 
+
 `source setup.sh`
 
 ### Running application
+Once setup has been done, use only this command to start the application.
+
 `python3 scripts/app.py`
 
 ## Authors
