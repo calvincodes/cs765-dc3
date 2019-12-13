@@ -2,7 +2,7 @@
 
 ## Local Env
 
-1. Clone the repository. `https://github.com/calvincodes/cs765-dc3.git`
+1. Clone the repository. `git clone https://github.com/calvincodes/cs765-dc3.git`
 2. Change directory to the cloned repository. `cd cs765-dc3`
 3. Execute the following commands.
 
