@@ -1,2 +1,4 @@
-graphviz
-pygraphviz
+pandas
+dash
+networkx
+colour
