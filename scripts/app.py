@@ -18,21 +18,41 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "Transaction Network"
 
-YEAR = [2010, 2019]
-CATEGORY = "Pet Supplies"
+DEPTH = 0
+DEBUG_MODE = False
 
+# raw_edges = pd.read_csv(os.path.dirname(__file__) + '/../dataset/pet_supplies_edges.csv')
+# raw_nodes = pd.read_csv(os.path.dirname(__file__) + '/../dataset/pet_supplies.csv')
+# DEFAULT_CATEGORY = "Flea & Tick Center" ## Pet Supplies
+
+raw_edges = pd.read_csv(os.path.dirname(__file__) + '/../dataset/musical_instruments_edges.csv')
+raw_nodes = pd.read_csv(os.path.dirname(__file__) + '/../dataset/musical_instruments.csv')
+DEFAULT_CATEGORY = "Instrument Accessories" ## Musical Instruments
+
+# raw_edges = pd.read_csv(os.path.dirname(__file__) + '/../dataset/books_edges.csv')
+# raw_nodes = pd.read_csv(os.path.dirname(__file__) + '/../dataset/books.csv')
+# DEFAULT_CATEGORY = "Reference" ## Books
 
 ##############################################################################################################################################################
-def network_graph(yearRange, CategoryToSearch):
-    raw_edges = pd.read_csv(os.path.dirname(__file__) + '/../dataset/pet_supplies_edges.csv')
-    raw_nodes = pd.read_csv(os.path.dirname(__file__) + '/../dataset/pet_supplies.csv')
-    # # Adding a dummy node. All source having no destination are linked to this node.
-    # node1 = node1.append({'id': -1, 'name': 'Dummy', 'productCount': '0', 'subtreeProductCount': '0', 'parent': '-1',
-    #                       'numChildren': '0', 'pathName': '[]', 'children': '[]', 'alsoCount': '0', 'also': '[]'},
-    #                      ignore_index=True)
+def network_graph(graphDepth, CategoryToSearch):
+
+    if not CategoryToSearch:
+        CategoryToSearch = DEFAULT_CATEGORY
 
     node1 = raw_nodes
-    input_id = raw_nodes[raw_nodes['name'] == CategoryToSearch]['id']
+    input_ids = raw_nodes[raw_nodes['name'] == CategoryToSearch]['id']
+    input_id = input_ids.iloc[0]  # TODO: Spit this into multiple subgraphs?
+
+    if DEBUG_MODE:
+        print("")
+        print("*********************************************************")
+        print("input_ids = ")
+        print(input_ids)
+        print("input_id = ")
+        print(input_id)
+        print("*********************************************************")
+        print("")
+
     edge1 = raw_edges[raw_edges['src'] == int(input_id)]
 
     ### Commenting out this segment
@@ -47,9 +67,26 @@ def network_graph(yearRange, CategoryToSearch):
     #     categorySet.add(edge1['src'][index])
     #     categorySet.add(edge1['dest'][index])
 
-    # 2 level filtering
-    for index, row in edge1.iterrows():
-        edge1 = edge1.append(raw_edges[raw_edges['src'] == edge1['dest'][index]])
+    # graphDepth level filtering
+    edges_to_append = pd.DataFrame()
+    for i in range(1, graphDepth + 1):
+        if edges_to_append.empty and i == 1:
+            curr_edges = edge1
+        else:
+            curr_edges = edges_to_append
+            edges_to_append = pd.DataFrame()
+        for index, row in curr_edges.iterrows():
+            edges_to_append = edges_to_append.append(raw_edges[raw_edges['src'] == curr_edges['dest'][index]])
+        edge1 = edge1.append(edges_to_append)
+
+    if DEBUG_MODE:
+        print("")
+        print("*********************************************************")
+        print("Graph Depth = ")
+        print(graphDepth)
+        print(edge1)
+        print("*********************************************************")
+        print("")
 
     categorySet = set()  # contain unique categories
     for index, row in edge1.iterrows():
@@ -216,28 +253,29 @@ app.layout = html.Div([
                     dcc.Markdown(d("""
                             **Graph Depth**
 
-                            Slide the bar to define Graph Depth range.
+                            Slide the bar to define Graph Depth.
                             """)),
                     html.Div(
                         className="twelve columns",
                         children=[
-                            dcc.RangeSlider(
-                                id='my-range-slider',
-                                min=2010,
-                                max=2019,
+                            dcc.Slider(
+                                id='my-slider',
+                                min=0,
+                                max=10,
                                 step=1,
-                                value=[2010, 2019],
+                                value=DEPTH,
                                 marks={
-                                    2010: {'label': '2010'},
-                                    2011: {'label': '2011'},
-                                    2012: {'label': '2012'},
-                                    2013: {'label': '2013'},
-                                    2014: {'label': '2014'},
-                                    2015: {'label': '2015'},
-                                    2016: {'label': '2016'},
-                                    2017: {'label': '2017'},
-                                    2018: {'label': '2018'},
-                                    2019: {'label': '2019'}
+                                    0: {'label': '0'},
+                                    1: {'label': '1'},
+                                    2: {'label': '2'},
+                                    3: {'label': '3'},
+                                    4: {'label': '4'},
+                                    5: {'label': '5'},
+                                    6: {'label': '6'},
+                                    7: {'label': '7'},
+                                    8: {'label': '8'},
+                                    9: {'label': '9'},
+                                    10: {'label': '10'}
                                 }
                             ),
                             html.Br(),
@@ -265,7 +303,7 @@ app.layout = html.Div([
             html.Div(
                 className="eight columns",
                 children=[dcc.Graph(id="my-graph",
-                                    figure=network_graph(YEAR, CATEGORY))],
+                                    figure=network_graph(DEPTH, DEFAULT_CATEGORY))],
             ),
 
             #########################################right side two output component
@@ -305,7 +343,7 @@ app.layout = html.Div([
 ###################################callback for left side components
 @app.callback(
     dash.dependencies.Output('my-graph', 'figure'),
-    [dash.dependencies.Input('my-range-slider', 'value'), dash.dependencies.Input('input1', 'value')])
+    [dash.dependencies.Input('my-slider', 'value'), dash.dependencies.Input('input1', 'value')])
 def update_output(value, input1):
     # YEAR = value
     # ACCOUNT = input1
@@ -329,4 +367,4 @@ def display_click_data(clickData):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
