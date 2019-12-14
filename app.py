@@ -27,8 +27,8 @@ DEBUG_MODE = False
 # raw_nodes = pd.read_csv(os.path.dirname(__file__) + 'dataset/pet_supplies.csv')
 # DEFAULT_CATEGORY = "Flea & Tick Center" ## Pet Supplies
 
-raw_edges = pd.read_csv(os.path.dirname(__file__) + 'dataset/musical_instruments_edges.csv')
-raw_nodes = pd.read_csv(os.path.dirname(__file__) + 'dataset/musical_instruments.csv')
+raw_edges = pd.read_csv('dataset/musical_instruments_edges.csv')
+raw_nodes = pd.read_csv('dataset/musical_instruments.csv')
 DEFAULT_CATEGORY = "Instrument Accessories" ## Musical Instruments
 
 # raw_edges = pd.read_csv(os.path.dirname(__file__) + 'dataset/books_edges.csv')
