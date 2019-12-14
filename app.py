@@ -18,6 +18,8 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.title = "Transaction Network"
 
+server = app.server
+
 DEPTH = 0
 DEBUG_MODE = False
 
