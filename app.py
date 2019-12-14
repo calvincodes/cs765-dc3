@@ -23,16 +23,16 @@ server = app.server
 DEPTH = 0
 DEBUG_MODE = False
 
-# raw_edges = pd.read_csv(os.path.dirname(__file__) + 'dataset/pet_supplies_edges.csv')
-# raw_nodes = pd.read_csv(os.path.dirname(__file__) + 'dataset/pet_supplies.csv')
+# raw_edges = pd.read_csv('dataset/pet_supplies_edges.csv')
+# raw_nodes = pd.read_csv('dataset/pet_supplies.csv')
 # DEFAULT_CATEGORY = "Flea & Tick Center" ## Pet Supplies
 
 raw_edges = pd.read_csv('dataset/musical_instruments_edges.csv')
 raw_nodes = pd.read_csv('dataset/musical_instruments.csv')
 DEFAULT_CATEGORY = "Instrument Accessories" ## Musical Instruments
 
-# raw_edges = pd.read_csv(os.path.dirname(__file__) + 'dataset/books_edges.csv')
-# raw_nodes = pd.read_csv(os.path.dirname(__file__) + 'dataset/books.csv')
+# raw_edges = pd.read_csv('dataset/books_edges.csv')
+# raw_nodes = pd.read_csv('dataset/books.csv')
 # DEFAULT_CATEGORY = "Reference" ## Books
 
 ##############################################################################################################################################################
