@@ -31,8 +31,9 @@ def network_graph(yearRange, CategoryToSearch):
     #                       'numChildren': '0', 'pathName': '[]', 'children': '[]', 'alsoCount': '0', 'also': '[]'},
     #                      ignore_index=True)
 
-    edge1 = raw_edges[raw_edges['src'] == 29]
     node1 = raw_nodes
+    input_id = raw_nodes[raw_nodes['name'] == CategoryToSearch]['id']
+    edge1 = raw_edges[raw_edges['src'] == int(input_id)]
 
     ### Commenting out this segment
     # # filter the record by datetime, to enable interactive control through the input box
@@ -46,10 +47,11 @@ def network_graph(yearRange, CategoryToSearch):
     #     categorySet.add(edge1['src'][index])
     #     categorySet.add(edge1['dest'][index])
 
+    # 2 level filtering
     for index, row in edge1.iterrows():
         edge1 = edge1.append(raw_edges[raw_edges['src'] == edge1['dest'][index]])
 
-    categorySet = set()  # contain unique account
+    categorySet = set()  # contain unique categories
     for index, row in edge1.iterrows():
         categorySet.add(edge1['src'][index])
         categorySet.add(edge1['dest'][index])
@@ -133,7 +135,7 @@ def network_graph(yearRange, CategoryToSearch):
         x, y = G.nodes[node]['pos']
         hovertext = "CategoryName: " + str(G.nodes[node]['CategoryName']) + "<br>" + "ProductCount: " + str(
             G.nodes[node]['ProductCount'])
-        text = node1['name'][index]
+        text = str(G.nodes[node]['CategoryName'])
         node_trace['x'] += tuple([x])
         node_trace['y'] += tuple([y])
         node_trace['hovertext'] += tuple([hovertext])
@@ -212,9 +214,9 @@ app.layout = html.Div([
                 className="two columns",
                 children=[
                     dcc.Markdown(d("""
-                            **Time Range To Visualize**
+                            **Graph Depth**
 
-                            Slide the bar to define year range.
+                            Slide the bar to define Graph Depth range.
                             """)),
                     html.Div(
                         className="twelve columns",
@@ -247,11 +249,11 @@ app.layout = html.Div([
                         className="twelve columns",
                         children=[
                             dcc.Markdown(d("""
-                            **Account To Search**
+                            **Category**
 
-                            Input the account to visualize.
+                            Input the root category to visualize.
                             """)),
-                            dcc.Input(id="input1", type="text", placeholder="Account"),
+                            dcc.Input(id="input1", type="text", placeholder="Category"),
                             html.Div(id="output")
                         ],
                         style={'height': '300px'}
@@ -305,8 +307,8 @@ app.layout = html.Div([
     dash.dependencies.Output('my-graph', 'figure'),
     [dash.dependencies.Input('my-range-slider', 'value'), dash.dependencies.Input('input1', 'value')])
 def update_output(value, input1):
-    YEAR = value
-    ACCOUNT = input1
+    # YEAR = value
+    # ACCOUNT = input1
     return network_graph(value, input1)
     # to update the global variable of YEAR and ACCOUNT
 
