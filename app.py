@@ -33,7 +33,7 @@ TITLE = "Network Graph"
 raw_edges = pd.read_csv('dataset/musical_instruments_edges.csv')
 raw_nodes = pd.read_csv('dataset/musical_instruments.csv')
 TITLE = "Musical Network Graph"
-DEFAULT_CATEGORY = "Instrument Accessories" ## Musical Instruments
+DEFAULT_CATEGORY = "Amplifiers & Effects" ## Musical Instruments
 
 # raw_edges = pd.read_csv('dataset/books_edges.csv')
 # raw_nodes = pd.read_csv('dataset/books.csv')
@@ -177,7 +177,7 @@ def network_graph(graphDepth, CategoryToSearch, graphLayout, nodeLayout):
             shell2.append(ele)
     shells.append(shell2)
 
-    G = nx.from_pandas_edgelist(edge1, 'src', 'dest', ['src', 'dest'], create_using=nx.MultiDiGraph())
+    G = nx.from_pandas_edgelist(edge1, 'src', 'dest', ['src', 'dest', 'num_children'], create_using=nx.MultiDiGraph())
     nx.set_node_attributes(G, node1.set_index('id')['name'].to_dict(), 'CategoryName')
     nx.set_node_attributes(G, node1.set_index('id')['productCount'].to_dict(), 'ProductCount')
     nx.set_node_attributes(G, node1['id'].to_dict(), 'Id')
@@ -226,15 +226,17 @@ def network_graph(graphDepth, CategoryToSearch, graphLayout, nodeLayout):
     colors = ['rgb' + str(x.rgb) for x in colors]
 
     index = 0
+
+    max_children = max(edge1['num_children'])
     for edge in G.edges:
         x0, y0 = G.nodes[edge[0]]['pos']
         x1, y1 = G.nodes[edge[1]]['pos']
         # TODO: Add weight as per the number of children per edge
-        # weight = float(G.edges[edge]['TransactionAmt']) / max(edge1['TransactionAmt']) * 10
+        weight = float(G.edges[edge]['num_children']) / max_children * 10
         trace = go.Scatter(x=tuple([x0, x1, None]), y=tuple([y0, y1, None]),
                            mode='lines',
-                           line={'width': 1},
-                           marker=dict(color=colors[index]),
+                           line={'width': weight},
+                           marker=dict(color=colors[0]),
                            line_shape='spline',
                            opacity=1)
         traceRecode.append(trace)
