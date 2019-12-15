@@ -9,9 +9,7 @@ import plotly.graph_objs as go
 import pandas as pd
 from colour import Color
 from textwrap import dedent as d
-import json
-
-import os.path
+import random
 
 # import the css template, and pass the css template into dash
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -20,8 +18,11 @@ app.title = "Transaction Network"
 
 server = app.server
 
-DEPTH = 0
 DEBUG_MODE = False
+
+DEPTH = 0
+GRAPH_LAYOUT = "top_down"
+NODE_LAYOUT = "id"
 
 # raw_edges = pd.read_csv('dataset/pet_supplies_edges.csv')
 # raw_nodes = pd.read_csv('dataset/pet_supplies.csv')
@@ -35,8 +36,74 @@ DEFAULT_CATEGORY = "Instrument Accessories" ## Musical Instruments
 # raw_nodes = pd.read_csv('dataset/books.csv')
 # DEFAULT_CATEGORY = "Reference" ## Books
 
+# Source for hierarchy positioning of nodes: https://stackoverflow.com/a/29597209/5404805
+def hierarchy_pos(G, root=None, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5):
+
+    '''
+    From Joel's answer at https://stackoverflow.com/a/29597209/2966723.
+    Licensed under Creative Commons Attribution-Share Alike
+
+    If the graph is a tree this will return the positions to plot this in a
+    hierarchical layout.
+
+    G: the graph (must be a tree)
+
+    root: the root node of current branch
+    - if the tree is directed and this is not given,
+      the root will be found and used
+    - if the tree is directed and this is given, then
+      the positions will be just for the descendants of this node.
+    - if the tree is undirected and not given,
+      then a random choice will be used.
+
+    width: horizontal space allocated for this branch - avoids overlap with other branches
+
+    vert_gap: gap between levels of hierarchy
+
+    vert_loc: vertical location of root
+
+    xcenter: horizontal location of root
+    '''
+    if not nx.is_tree(G):
+        raise TypeError('cannot use hierarchy_pos on a graph that is not a tree')
+
+    if root is None:
+        if isinstance(G, nx.DiGraph):
+            root = next(iter(nx.topological_sort(G)))  #allows back compatibility with nx version 1.11
+        else:
+            root = random.choice(list(G.nodes))
+
+    def _hierarchy_pos(G, root, width=1., vert_gap = 0.2, vert_loc = 0, xcenter = 0.5, pos = None, parent = None):
+        '''
+        see hierarchy_pos docstring for most arguments
+
+        pos: a dict saying where all nodes go if they have been assigned
+        parent: parent of this branch. - only affects it if non-directed
+
+        '''
+
+        if pos is None:
+            pos = {root:(xcenter,vert_loc)}
+        else:
+            pos[root] = (xcenter, vert_loc)
+        children = list(G.neighbors(root))
+        if not isinstance(G, nx.DiGraph) and parent is not None:
+            children.remove(parent)
+        if len(children)!=0:
+            dx = width/len(children)
+            nextx = xcenter - width/2 - dx/2
+            for child in children:
+                nextx += dx
+                pos = _hierarchy_pos(G,child, width = dx, vert_gap = vert_gap,
+                                    vert_loc = vert_loc-vert_gap, xcenter=nextx,
+                                    pos=pos, parent = root)
+        return pos
+
+
+    return _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
+
 ##############################################################################################################################################################
-def network_graph(graphDepth, CategoryToSearch):
+def network_graph(graphDepth, CategoryToSearch, graphLayout, nodeLayout):
 
     if not CategoryToSearch:
         CategoryToSearch = DEFAULT_CATEGORY
@@ -109,10 +176,14 @@ def network_graph(graphDepth, CategoryToSearch):
     G = nx.from_pandas_edgelist(edge1, 'src', 'dest', ['src', 'dest'], create_using=nx.MultiDiGraph())
     nx.set_node_attributes(G, node1.set_index('id')['name'].to_dict(), 'CategoryName')
     nx.set_node_attributes(G, node1.set_index('id')['productCount'].to_dict(), 'ProductCount')
+    nx.set_node_attributes(G, node1['id'].to_dict(), 'Id')
 
     # nx.layout.shell_layout only works for more than 3 nodes
     if len(shell2) > 1:
-        pos = nx.layout.shell_layout(G, shells)
+        if graphLayout == "circular":
+            pos = nx.layout.shell_layout(G, shells)
+        if graphLayout == "top_down":
+            pos = hierarchy_pos(G, input_id)
     else:
         pos = nx.layout.spring_layout(G)
     for node in G.nodes:
@@ -154,6 +225,7 @@ def network_graph(graphDepth, CategoryToSearch):
     for edge in G.edges:
         x0, y0 = G.nodes[edge[0]]['pos']
         x1, y1 = G.nodes[edge[1]]['pos']
+        # TODO: Add weight as per the number of children per edge
         # weight = float(G.edges[edge]['TransactionAmt']) / max(edge1['TransactionAmt']) * 10
         trace = go.Scatter(x=tuple([x0, x1, None]), y=tuple([y0, y1, None]),
                            mode='lines',
@@ -167,14 +239,23 @@ def network_graph(graphDepth, CategoryToSearch):
     ###############################################################################################################################################################
 
     node_trace = go.Scatter(x=[], y=[], hovertext=[], text=[], mode='markers+text', textposition="bottom center",
-                            hoverinfo="text", marker={'size': 50, 'color': 'LightSkyBlue'})
+                            hoverinfo="text", marker={'size': 20, 'color': 'LightSkyBlue'})
 
     index = 0
+
+    if DEBUG_MODE:
+        for node in G.nodes():
+            print(G.nodes[node])
+
     for node in G.nodes():
         x, y = G.nodes[node]['pos']
         hovertext = "CategoryName: " + str(G.nodes[node]['CategoryName']) + "<br>" + "ProductCount: " + str(
             G.nodes[node]['ProductCount'])
-        text = str(G.nodes[node]['CategoryName'])
+        text = ""
+        if nodeLayout == 'name':
+            text = str(G.nodes[node]['CategoryName'])
+        if nodeLayout == 'id':
+            text = str(G.nodes[node]['Id'])
         node_trace['x'] += tuple([x])
         node_trace['y'] += tuple([y])
         node_trace['hovertext'] += tuple([hovertext])
@@ -223,7 +304,7 @@ def network_graph(graphDepth, CategoryToSearch):
                                     showarrow=True,
                                     arrowhead=2,
                                     arrowsize=2,
-                                    arrowwidth=2,
+                                    arrowwidth=0.2,
                                     opacity=1
                                 ) for edge in G.edges]
                             )}
@@ -305,68 +386,64 @@ app.layout = html.Div([
             html.Div(
                 className="eight columns",
                 children=[dcc.Graph(id="my-graph",
-                                    figure=network_graph(DEPTH, DEFAULT_CATEGORY))],
+                                    figure=network_graph(DEPTH, DEFAULT_CATEGORY, GRAPH_LAYOUT, NODE_LAYOUT))],
             ),
 
-            #########################################right side two output component
+            #########################################right side two input component
             html.Div(
                 className="two columns",
                 children=[
+                    dcc.Markdown(d("""
+                    **Graph Layout**
+                    Select how the graph looks.
+                    """)),
                     html.Div(
-                        className='twelve columns',
+                        className="twelve columns",
                         children=[
-                            dcc.Markdown(d("""
-                            **Hover Data**
-
-                            Mouse over values in the graph.
-                            """)),
-                            html.Pre(id='hover-data', style=styles['pre'])
+                            dcc.RadioItems(
+                                id="graph-layout",
+                                options=[
+                                    {'label': 'Cytoscape', 'value': 'circular'},
+                                    {'label': 'Top Down', 'value': 'top_down'}
+                                ],
+                                value='top_down'
+                            )
                         ],
-                        style={'height': '400px'}),
-
+                        style={'height': '300px'}
+                    ),
+                    dcc.Markdown(d("""
+                    **Node Layout**
+                    Select how the nodes look.
+                    """)),
                     html.Div(
-                        className='twelve columns',
+                        className="twelve columns",
                         children=[
-                            dcc.Markdown(d("""
-                            **Click Data**
-
-                            Click on points in the graph.
-                            """)),
-                            html.Pre(id='click-data', style=styles['pre'])
+                            dcc.RadioItems(
+                                id="node-layout",
+                                options=[
+                                    {'label': 'Id', 'value': 'id'},
+                                    {'label': 'Name', 'value': 'name'}
+                                ],
+                                value='id'
+                            )
                         ],
-                        style={'height': '400px'})
+                        style={'height': '300px'}
+                    )
                 ]
-            )
+            ),
         ]
     )
 ])
 
-
-###################################callback for left side components
+################################### callbacks for all components
 @app.callback(
     dash.dependencies.Output('my-graph', 'figure'),
-    [dash.dependencies.Input('my-slider', 'value'), dash.dependencies.Input('input1', 'value')])
-def update_output(value, input1):
-    # YEAR = value
-    # ACCOUNT = input1
-    return network_graph(value, input1)
-    # to update the global variable of YEAR and ACCOUNT
-
-
-################################callback for right side components
-@app.callback(
-    dash.dependencies.Output('hover-data', 'children'),
-    [dash.dependencies.Input('my-graph', 'hoverData')])
-def display_hover_data(hoverData):
-    return json.dumps(hoverData, indent=2)
-
-
-@app.callback(
-    dash.dependencies.Output('click-data', 'children'),
-    [dash.dependencies.Input('my-graph', 'clickData')])
-def display_click_data(clickData):
-    return json.dumps(clickData, indent=2)
-
+    [dash.dependencies.Input('my-slider', 'value'),
+     dash.dependencies.Input('input1', 'value'),
+     dash.dependencies.Input('graph-layout', 'value'),
+     dash.dependencies.Input('node-layout', 'value')])
+def update_output(value, input1, graph_layout, node_layout):
+    return network_graph(value, input1, graph_layout, node_layout)
 
 if __name__ == '__main__':
     app.run_server(debug=False)
