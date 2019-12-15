@@ -289,6 +289,9 @@ def network_graph(graphDepth, CategoryToSearch, graphLayout, nodeLayout):
 
     #################################################################################################################################################################
 
+    arrow_width = 0.2
+    if graphLayout == "circular":
+        arrow_width = 1
     figure = {
         "data": traceRecode,
         "layout": go.Layout(title='Interactive Visualization', showlegend=False, hovermode='closest',
@@ -308,7 +311,7 @@ def network_graph(graphDepth, CategoryToSearch, graphLayout, nodeLayout):
                                     showarrow=True,
                                     arrowhead=2,
                                     arrowsize=2,
-                                    arrowwidth=0.2,
+                                    arrowwidth=arrow_width,
                                     opacity=1
                                 ) for edge in G.edges]
                             )}
