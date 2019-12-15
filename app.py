@@ -23,17 +23,21 @@ DEBUG_MODE = False
 DEPTH = 0
 GRAPH_LAYOUT = "top_down"
 NODE_LAYOUT = "id"
+TITLE = "Network Graph"
 
 # raw_edges = pd.read_csv('dataset/pet_supplies_edges.csv')
 # raw_nodes = pd.read_csv('dataset/pet_supplies.csv')
+# TITLE = "Pet Supplies Network Graph"
 # DEFAULT_CATEGORY = "Flea & Tick Center" ## Pet Supplies
 
 raw_edges = pd.read_csv('dataset/musical_instruments_edges.csv')
 raw_nodes = pd.read_csv('dataset/musical_instruments.csv')
+TITLE = "Musical Network Graph"
 DEFAULT_CATEGORY = "Instrument Accessories" ## Musical Instruments
 
 # raw_edges = pd.read_csv('dataset/books_edges.csv')
 # raw_nodes = pd.read_csv('dataset/books.csv')
+# TITLE = "Books Network Graph"
 # DEFAULT_CATEGORY = "Reference" ## Books
 
 # Source for hierarchy positioning of nodes: https://stackoverflow.com/a/29597209/5404805
@@ -206,7 +210,7 @@ def network_graph(graphDepth, CategoryToSearch, graphLayout, nodeLayout):
 
         figure = {
             "data": traceRecode,
-            "layout": go.Layout(title='Interactive Transaction Visualization', showlegend=False,
+            "layout": go.Layout(title='Interactive Visualization', showlegend=False,
                                 margin={'b': 40, 'l': 40, 'r': 40, 't': 40},
                                 xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
                                 yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
