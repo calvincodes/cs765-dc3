@@ -22,7 +22,7 @@ DEBUG_MODE = False
 
 DEPTH = 0
 GRAPH_LAYOUT = "top_down"
-NODE_LAYOUT = "id"
+NODE_LAYOUT = "name"
 TITLE = "Network Graph"
 
 # raw_edges = pd.read_csv('dataset/pet_supplies_edges.csv')
