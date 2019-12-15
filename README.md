@@ -15,7 +15,7 @@
 ### Running application
 Once setup has been done, use this command to start the application. Note that you do **NOT** have to run setup again.
 
-`python3 scripts/app.py`
+`python3 app.py`
 
 ## Authors
 
