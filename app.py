@@ -14,7 +14,7 @@ import random
 # import the css template, and pass the css template into dash
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-app.title = "Transaction Network"
+app.title = "Network Graph"
 
 server = app.server
 
@@ -291,7 +291,7 @@ def network_graph(graphDepth, CategoryToSearch, graphLayout, nodeLayout):
 
     figure = {
         "data": traceRecode,
-        "layout": go.Layout(title='Interactive Transaction Visualization', showlegend=False, hovermode='closest',
+        "layout": go.Layout(title='Interactive Visualization', showlegend=False, hovermode='closest',
                             margin={'b': 40, 'l': 40, 'r': 40, 't': 40},
                             xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
                             yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
@@ -326,7 +326,7 @@ styles = {
 
 app.layout = html.Div([
     #########################Title
-    html.Div([html.H1("Transaction Network Graph")],
+    html.Div([html.H1(TITLE)],
              className="row",
              style={'textAlign': "center"}),
     #############################################################################################define the row
