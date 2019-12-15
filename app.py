@@ -33,7 +33,7 @@ TITLE = "Network Graph"
 raw_edges = pd.read_csv('dataset/musical_instruments_edges.csv')
 raw_nodes = pd.read_csv('dataset/musical_instruments.csv')
 TITLE = "Musical Network Graph"
-DEFAULT_CATEGORY = "Instrument Accessories" ## Musical Instruments
+DEFAULT_CATEGORY = "Amplifiers & Effects" ## Musical Instruments
 
 # raw_edges = pd.read_csv('dataset/books_edges.csv')
 # raw_nodes = pd.read_csv('dataset/books.csv')
